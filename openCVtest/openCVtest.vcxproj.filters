@@ -14,4 +14,35 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="entry.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="binaryTest.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="contourTest.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="trackBarTest.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="eolExample.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="binaryTest.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="contourTest.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="trackBarTest.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="eolExample.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
