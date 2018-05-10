@@ -10,8 +10,20 @@ void test(IplImage *pSrc)
 int eolExample()
 {
 	int retVal = 0;
+	unsigned char *yuvData = (unsigned char *)malloc(704 * 480);
+	FILE *fp = fopen("d:/binaryY.yuv","rb");
+	
+	if (NULL==fp)
+	{
+		printf("fopen failed\n");
+		return -1;
+	}
+	fread(yuvData,1,704*480,fp);
+	IplImage* pFrImg = cvCreateImage(cvSize(704,480),IPL_DEPTH_8U,1);
+	cvSetData(pFrImg, yuvData, 704);
 	//unsigned char *pFrImg = (unsigned char *)pSrcImg;
-	IplImage *pFrImg = cvLoadImage("D:\\VSCodeDir\\openCVtest\\x64\\Debug\\test.jpg", CV_LOAD_IMAGE_UNCHANGED);
+	//IplImage *pFrImg = cvLoadImage("D:\\VSCodeDir\\openCVtest\\x64\\Debug\\test.jpg", CV_LOAD_IMAGE_UNCHANGED);
+//	IplImage *pFrImg = cvLoadImage("D:\\VSCodeDir\\openCVtest\\x64\\Debug\\11_d.jpg", CV_LOAD_IMAGE_UNCHANGED);
 	cvNamedWindow("srcImg");
 	cvShowImage("srcImg", pFrImg);
 
@@ -19,11 +31,14 @@ int eolExample()
 	IplImage *pGrayImg = cvCreateImage(cvSize(pFrImg->width, pFrImg->height), IPL_DEPTH_8U, 1);
 	IplImage *pBinImg = cvCreateImage(cvSize(pFrImg->width, pFrImg->height), IPL_DEPTH_8U, 1);
 	IplImage *temp_img = cvCreateImage(cvSize(pFrImg->width, pFrImg->height), IPL_DEPTH_8U, 1);
+	IplImage *temp_img_b = cvCreateImage(cvSize(pFrImg->width, pFrImg->height), IPL_DEPTH_8U, 3);
+	IplImage *temp_img_c = cvCreateImage(cvSize(pFrImg->width, pFrImg->height), IPL_DEPTH_8U, 3);
 
-	cvCvtColor(pFrImg, pGrayImg, CV_BGR2GRAY);
+	//cvCvtColor(pFrImg, pGrayImg, CV_BGR2GRAY);
 
 
-	cvThreshold(pGrayImg, pBinImg, 100, 255, CV_THRESH_BINARY);
+	//cvThreshold(pGrayImg, pBinImg, 100, 255, CV_THRESH_BINARY);
+	cvCopy(pFrImg,pBinImg);
 	cvNamedWindow("grayImg");
 	cvShowImage("grayImg", pBinImg);
 
@@ -161,13 +176,57 @@ int eolExample()
 					}
 
 					printf("x=%f,y=%f\n",rect_center[0], rect_center[1]);
-					cvLine(pFrame, cvPoint(pt[0].x, pt[0].y), cvPoint(pt[1].x, pt[1].y), CV_RGB(255, 0, 0), 1, 8, 0);
-					cvLine(pFrame, cvPoint(pt[1].x, pt[1].y), cvPoint(pt[2].x, pt[2].y), CV_RGB(255, 50, 0), 1, 8, 0);
-					cvLine(pFrame, cvPoint(pt[2].x, pt[2].y), cvPoint(pt[3].x, pt[3].y), CV_RGB(255, 100, 0), 1, 8, 0);
-					cvLine(pFrame, cvPoint(pt[3].x, pt[3].y), cvPoint(pt[0].x, pt[0].y), CV_RGB(255, 150, 0), 1, 8, 0);
+					cvLine(temp_img_b, cvPoint(pt[0].x, pt[0].y), cvPoint(pt[1].x, pt[1].y), CV_RGB(255, 0, 0), 1, 8, 0);
+					cvLine(temp_img_b, cvPoint(pt[1].x, pt[1].y), cvPoint(pt[2].x, pt[2].y), CV_RGB(0, 255, 0), 1, 8, 0);
+					cvLine(temp_img_b, cvPoint(pt[2].x, pt[2].y), cvPoint(pt[3].x, pt[3].y), CV_RGB(0, 0, 255), 1, 8, 0);
+					cvLine(temp_img_b, cvPoint(pt[3].x, pt[3].y), cvPoint(pt[0].x, pt[0].y), CV_RGB(150, 150, 150), 1, 8, 0);
 
+					CvPoint2D32f QPts[4];
+					int index[4];
+					int j = 0;
+					// get 4 point.
+					for (i = 0; i < 4; i++)
+					{
+						index[i] = i;
+						QPts[i].x = (float)(*(CvPoint*)cvGetSeqElem(dst_contour, i)).x;
+						QPts[i].y = (float)(*(CvPoint*)cvGetSeqElem(dst_contour, i)).y;
+					}
 
+					// sort the 4 point by y
+					for (i = 0; i < 4; i++)
+					{
+						for (j = i + 1; j < 4; j++)
+						{
+							if (QPts[i].y > QPts[j].y)
+							{
+								CvPoint2D32f temp;
+								temp = QPts[i];
+								QPts[i] = QPts[j];
+								QPts[j] = temp;
 
+								int temp_idx;
+								temp_idx = index[i];
+								index[i] = index[j];
+								index[j] = temp_idx;
+							}
+						}
+					}
+
+					// 保证从0点开始，顺时钟排序，（0点的x比1点的小）
+					CvPoint2D32f pt_temp[4];
+					int k = (QPts[0].x < QPts[1].x) ? index[0] : index[1];
+					for (i = 0; i < 4; i++)
+					{
+						float x = (float)(*(CvPoint*)cvGetSeqElem(dst_contour, k % 4)).x;
+						float y = (float)(*(CvPoint*)cvGetSeqElem(dst_contour, k % 4)).y;
+						pt_temp[i] = cvPoint2D32f(x, y);
+
+						k++;
+					}
+					cvLine(temp_img_c, cvPoint(pt_temp[0].x, pt_temp[0].y), cvPoint(pt_temp[1].x, pt_temp[1].y), CV_RGB(255, 0, 0), 1, 8, 0);
+					cvLine(temp_img_c, cvPoint(pt_temp[1].x, pt_temp[1].y), cvPoint(pt_temp[2].x, pt_temp[2].y), CV_RGB(0, 255, 0), 1, 8, 0);
+					cvLine(temp_img_c, cvPoint(pt_temp[2].x, pt_temp[2].y), cvPoint(pt_temp[3].x, pt_temp[3].y), CV_RGB(0, 0, 255), 1, 8, 0);
+					cvLine(temp_img_c, cvPoint(pt_temp[3].x, pt_temp[3].y), cvPoint(pt_temp[0].x, pt_temp[0].y), CV_RGB(150, 150, 150), 1, 8, 0);
 
 
 				}// end if(rect.width...// position
@@ -179,9 +238,12 @@ int eolExample()
 
 	test(pFrame);
 	cvEndFindContours(&scanner);
-	cvShowImage("contours", pFrame);
+	cvShowImage("contours", temp_img_b);
 	cvShowImage("pBinImg", pGrayImg);
+	cvShowImage("contours1", temp_img_c);
 	// pFrImg->origin=1;  // 这个不需要翻转（实验结果得知）
 	cvWaitKey(0);
+	free(yuvData);
 	return(retVal);
+
 }
